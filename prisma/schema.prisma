@@ -1,0 +1,169 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("ADMIN")
+  mustChangePw Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Client {
+  id         String    @id @default(cuid())
+  name       String
+  phone      String
+  whatsapp   String
+  email      String?
+  zone       String
+  tags       String    @default("") // CSV tags e.g. "Frecuente,Urgencia,Flota"
+  totalSpent Float     @default(0)
+  lastVisit  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  vehicles Vehicle[]
+  jobs     Job[]
+  notes    Note[]
+  leads    Lead[]
+
+  @@index([name])
+  @@index([zone])
+  @@index([createdAt])
+}
+
+model Vehicle {
+  id        String   @id @default(cuid())
+  brand     String
+  model     String
+  year      Int
+  plate     String?
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  jobs      Job[]
+  createdAt DateTime @default(now())
+
+  @@index([brand])
+  @@index([clientId])
+}
+
+model Lead {
+  id                String   @id @default(cuid())
+  name              String
+  phone             String?
+  zone              String
+  preferredSchedule String?
+  serviceName       String
+  brand             String
+  model             String
+  year              String
+  situation         String
+  message           String
+  status            String   @default("NUEVO") // NUEVO, CONTACTADO, PRESUPUESTADO, CERRADO, PERDIDO
+  origin            String   @default("Web") // Web, WhatsApp, Instagram, Local
+  estimatedValue    Float?
+  clientId          String?
+  client            Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  notes             Note[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([brand])
+}
+
+model Service {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  slogan      String?
+  description String
+  basePrice   Float
+  active      Boolean @default(true)
+  jobs        Job[]
+}
+
+model Job {
+  id            String       @id @default(cuid())
+  code          String       @unique
+  clientId      String
+  client        Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  vehicleId     String?
+  vehicle       Vehicle?     @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  serviceId     String
+  service       Service      @relation(fields: [serviceId], references: [id])
+  serviceName   String
+  brand         String
+  model         String
+  year          Int
+  plate         String?
+  date          DateTime     @default(now())
+  priceCharged  Float
+  materialCost  Float        @default(0)
+  paymentMethod String       @default("EFECTIVO") // EFECTIVO, TRANSFERENCIA, TARJETA, MERCADOPAGO
+  status        String       @default("PENDIENTE") // PENDIENTE, EN_PROCESO, FINALIZADO, COBRADO
+  technician    String       @default("Lucas (Taller Principal)")
+  notes         String?
+  transaction   Transaction?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([date])
+  @@index([status])
+  @@index([serviceId])
+  @@index([brand])
+}
+
+model Transaction {
+  id            String   @id @default(cuid())
+  type          String // INGRESO, EGRESO
+  category      String
+  description   String
+  amount        Float
+  date          DateTime @default(now())
+  paymentMethod String   @default("EFECTIVO") // EFECTIVO, TRANSFERENCIA, TARJETA, MERCADOPAGO
+  provider      String?
+  receiptUrl    String?
+  jobId         String?  @unique
+  job           Job?     @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  createdAt     DateTime @default(now())
+
+  @@index([date])
+  @@index([type])
+  @@index([category])
+}
+
+model ExpenseCategory {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+  active      Boolean @default(true)
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  content   String
+  author    String   @default("Admin KeyCar")
+  clientId  String?
+  client    Client?  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  leadId    String?
+  lead      Lead?    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
