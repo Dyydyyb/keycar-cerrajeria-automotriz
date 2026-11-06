@@ -181,3 +181,4 @@ export function ServicesSection({ onSelectService }: ServicesSectionProps) {
     </section>
   );
 }
+

@@ -16,6 +16,8 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   CheckCircle2,
 } from "lucide-react";
 import { useKeyCar } from "@/context/KeyCarContext";
@@ -40,7 +42,7 @@ export default function AdminClientesPage() {
   const [brandFilter, setBrandFilter] = useState("TODAS");
   const [tagFilter, setTagFilter] = useState("TODAS");
   const [page, setPage] = useState(1);
-  const pageSize = 12;
+  const [pageSize, setPageSize] = useState(5);
 
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -402,13 +404,40 @@ export default function AdminClientesPage() {
           })}
         </div>
 
-        {/* Pagination Footer */}
-        <div className="px-4 py-3 bg-[#F5F7FA] border-t border-[#E2E8F0] flex items-center justify-between text-xs">
-          <span className="text-[#4A5568]">
-            Mostrando <strong>{paginatedClients.length}</strong> de{" "}
-            <strong>{filteredClients.length}</strong> clientes
-          </span>
+        {/* Pagination Footer & "Ver más" */}
+        <div className="px-4 py-3 bg-[#F5F7FA] border-t border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[#4A5568]">
+              Mostrando <strong>{paginatedClients.length}</strong> de{" "}
+              <strong>{filteredClients.length}</strong> clientes
+            </span>
+            <span className="text-slate-300 hidden sm:inline">|</span>
+            <button
+              type="button"
+              onClick={() => {
+                setPageSize((prev) => (prev <= 5 ? 15 : 5));
+                setPage(1);
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold bg-white hover:bg-[#1473E6] text-[#0B1B2E] hover:text-white border border-[#E2E8F0] transition-colors"
+            >
+              {pageSize <= 5 ? (
+                <>
+                  <ChevronDown className="w-3.5 h-3.5 text-[#1473E6]" />
+                  <span>Ver más clientes (15)</span>
+                </>
+              ) : (
+                <>
+                  <ChevronUp className="w-3.5 h-3.5 text-[#1473E6]" />
+                  <span>Ver menos (5 filas)</span>
+                </>
+              )}
+            </button>
+          </div>
+
           <div className="flex items-center gap-1.5">
+            <span className="text-[#4A5568] mr-1">
+              Página {page} de {totalPages}
+            </span>
             <button
               type="button"
               disabled={page <= 1}
@@ -417,9 +446,6 @@ export default function AdminClientesPage() {
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="px-2 font-bold text-[#0B1B2E]">
-              {page} / {totalPages}
-            </span>
             <button
               type="button"
               disabled={page >= totalPages}
@@ -951,3 +977,4 @@ export default function AdminClientesPage() {
     </div>
   );
 }
+

@@ -91,7 +91,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F7FA] text-[#4A5568] flex flex-col lg:flex-row overflow-x-hidden">
+    <div className="min-h-screen bg-[#F5F7FA] text-[#4A5568] flex flex-col lg:flex-row">
       {/* Desktop Sidebar (Fixed Dark Blue #0B1B2E) */}
       <aside
         className={`no-print hidden lg:flex flex-col bg-[#0B1B2E] text-white border-r border-white/10 transition-all duration-200 flex-shrink-0 sticky top-0 h-screen ${
@@ -289,7 +289,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
         {/* Initial Password Change Security Prompt */}
         {!hidePwBanner && (
           <div className="no-print bg-amber-50 border-b border-amber-200 px-3 sm:px-6 py-2 flex items-center justify-between gap-2 text-xs text-amber-900">
@@ -325,3 +325,4 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+

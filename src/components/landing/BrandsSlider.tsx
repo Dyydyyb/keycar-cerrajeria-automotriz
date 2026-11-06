@@ -84,3 +84,4 @@ export function BrandsSlider({ onSelectBrand }: BrandsSliderProps) {
     </section>
   );
 }
+

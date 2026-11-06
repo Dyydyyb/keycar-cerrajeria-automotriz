@@ -5,3 +5,4 @@ export async function POST() {
   response.cookies.delete("keycar_admin_session");
   return response;
 }
+

@@ -144,3 +144,4 @@ export interface KeyCarDatabaseState {
   waitlist: HomeKeyWaitlistRecord[];
   settings: BusinessSettingsRecord;
 }
+

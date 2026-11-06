@@ -14,6 +14,7 @@ import {
   Tooltip,
   Legend,
   Cell,
+  ReferenceLine,
 } from "recharts";
 import {
   Users,
@@ -29,6 +30,8 @@ import {
   Plus,
   CarFront,
   Filter,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useKeyCar } from "@/context/KeyCarContext";
 
@@ -43,10 +46,20 @@ function calcPercentChange(current: number, previous: number): number {
   return Math.round(((current - previous) / previous) * 100);
 }
 
+function formatNetAxis(v: number): string {
+  if (v === 0) return "$0";
+  const sign = v < 0 ? "-" : "+";
+  const abs = Math.abs(v);
+  if (abs >= 1000000) return `${sign}$${(abs / 1000000).toFixed(1)}M`;
+  return `${sign}$${Math.round(abs / 1000)}k`;
+}
+
 export default function AdminDashboardPage() {
   const { db, isLoaded } = useKeyCar();
 
   const [period, setPeriod] = useState<PeriodFilter>("MES");
+  const [jobsLimit, setJobsLimit] = useState(4);
+  const [leadsLimit, setLeadsLimit] = useState(4);
   const [customStart, setCustomStart] = useState<string>(() => {
     const d = new Date(Date.now() - 30 * 86400000);
     return d.toISOString().slice(0, 10);
@@ -596,43 +609,70 @@ export default function AdminDashboardPage() {
 
         {/* Chart 2: Balance Neto por período */}
         <div className="lg:col-span-5 bg-white border border-[#E2E8F0] rounded-2xl p-4 sm:p-5 shadow-card">
-          <div className="mb-4">
-            <h2 className="font-heading font-bold text-sm sm:text-base text-[#0B1B2E]">
-              2. Balance neto por tramo
-            </h2>
-            <p className="text-xs text-[#4A5568]">
-              Resultado neto (Ingresos − Egresos)
-            </p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="font-heading font-bold text-sm sm:text-base text-[#0B1B2E]">
+                2. Balance neto por tramo
+              </h2>
+              <p className="text-xs text-[#4A5568]">
+                Resultado neto (Ingresos − Egresos)
+              </p>
+            </div>
+            <span
+              className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                analytics.netBalance >= 0
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  : "bg-rose-50 text-rose-700 border border-rose-200"
+              }`}
+            >
+              {analytics.netBalance >= 0 ? "+" : ""}{formatARS(analytics.netBalance)}
+            </span>
           </div>
           <div className="h-56 sm:h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={analytics.timeSeries}
-                margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
+                margin={{ top: 8, right: 10, left: 0, bottom: 0 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                <ReferenceLine y={0} stroke="#94A3B8" strokeWidth={1.5} strokeDasharray="3 3" />
                 <XAxis
                   dataKey="name"
                   tick={{ fontSize: 11, fill: "#4A5568" }}
+                  axisLine={{ stroke: "#E2E8F0" }}
                 />
                 <YAxis
-                  tickFormatter={(v) => `$${Math.round(v / 1000)}k`}
+                  tickFormatter={formatNetAxis}
                   tick={{ fontSize: 11, fill: "#4A5568" }}
-                  width={54}
+                  axisLine={{ stroke: "#E2E8F0" }}
+                  width={62}
                 />
                 <Tooltip
-                  formatter={(value: number) => formatARS(Number(value))}
-                  contentStyle={{
-                    borderRadius: "10px",
-                    borderColor: "#E2E8F0",
-                    fontSize: "12px",
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      const isPos = data.Balance >= 0;
+                      return (
+                        <div className="bg-white p-2.5 rounded-xl border border-[#E2E8F0] shadow-card text-xs">
+                          <p className="font-bold text-[#0B1B2E] mb-1">{data.name}</p>
+                          <p className={`font-extrabold text-sm ${isPos ? "text-emerald-700" : "text-rose-600"}`}>
+                            Balance: {isPos ? "+" : ""}{formatARS(data.Balance)}
+                          </p>
+                          <div className="text-[11px] text-[#4A5568] mt-1 space-y-0.5">
+                            <p>Ingresos: {formatARS(data.Ingresos)}</p>
+                            <p>Egresos: {formatARS(data.Egresos)}</p>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
                   }}
                 />
-                <Bar dataKey="Balance" radius={[6, 6, 0, 0]}>
+                <Bar dataKey="Balance" maxBarSize={34} radius={[4, 4, 4, 4]}>
                   {analytics.timeSeries.map((entry, idx) => (
                     <Cell
                       key={`cell-bal-${idx}`}
-                      fill={entry.Balance >= 0 ? "#0B1B2E" : "#94A3B8"}
+                      fill={entry.Balance >= 0 ? "#10B981" : "#F43F5E"}
                     />
                   ))}
                 </Bar>
@@ -923,7 +963,7 @@ export default function AdminDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E2E8F0]">
-                {db.jobs.slice(0, 6).map((job) => (
+                {db.jobs.slice(0, jobsLimit).map((job) => (
                   <tr key={job.id} className="hover:bg-[#F5F7FA]/60">
                     <td className="py-2.5 pr-2">
                       <p className="font-bold text-[#0B1B2E]">
@@ -962,63 +1002,114 @@ export default function AdminDashboardPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Ver más / Ver menos trabajos */}
+          <div className="pt-2.5 mt-2 border-t border-[#E2E8F0] flex items-center justify-between">
+            <span className="text-[11px] text-[#4A5568]">
+              Mostrando {Math.min(jobsLimit, db.jobs.length)} de {db.jobs.length} trabajos
+            </span>
+            <button
+              type="button"
+              onClick={() => setJobsLimit((prev) => (prev === 4 ? 10 : 4))}
+              className="inline-flex items-center gap-1 text-xs font-bold text-[#1473E6] hover:underline"
+            >
+              {jobsLimit === 4 ? (
+                <>
+                  <ChevronDown className="w-3.5 h-3.5" />
+                  <span>Ver más trabajos</span>
+                </>
+              ) : (
+                <>
+                  <ChevronUp className="w-3.5 h-3.5" />
+                  <span>Ver menos</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Table 2: Últimas consultas (Leads) */}
-        <div className="lg:col-span-5 bg-white border border-[#E2E8F0] rounded-2xl p-4 sm:p-5 shadow-card">
-          <div className="flex items-center justify-between mb-3.5">
-            <div className="flex items-center gap-2">
-              <MessageSquareMore className="w-4 h-4 text-[#1473E6]" />
-              <h2 className="font-heading font-bold text-sm sm:text-base text-[#0B1B2E]">
-                Últimas consultas entrantes
-              </h2>
+        <div className="lg:col-span-5 bg-white border border-[#E2E8F0] rounded-2xl p-4 sm:p-5 shadow-card flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-3.5">
+              <div className="flex items-center gap-2">
+                <MessageSquareMore className="w-4 h-4 text-[#1473E6]" />
+                <h2 className="font-heading font-bold text-sm sm:text-base text-[#0B1B2E]">
+                  Últimas consultas entrantes
+                </h2>
+              </div>
+              <Link
+                href="/admin/leads"
+                className="text-xs font-bold text-[#1473E6] hover:underline"
+              >
+                Ver pipeline ({db.leads.length})
+              </Link>
             </div>
-            <Link
-              href="/admin/leads"
-              className="text-xs font-bold text-[#1473E6] hover:underline"
-            >
-              Ver pipeline ({db.leads.length})
-            </Link>
+
+            <div className="space-y-2.5">
+              {db.leads.slice(0, leadsLimit).map((lead) => (
+                <div
+                  key={lead.id}
+                  className="p-3 rounded-xl bg-[#F5F7FA] border border-[#E2E8F0] flex items-start justify-between gap-2 text-xs"
+                >
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-[#0B1B2E] truncate">
+                        {lead.name}
+                      </p>
+                      <span className="text-[10px] text-[#4A5568]">
+                        · {lead.zone}
+                      </span>
+                    </div>
+                    <p className="text-[11px] font-semibold text-[#1473E6] truncate mt-0.5">
+                      {lead.serviceName} ({lead.brand} {lead.model})
+                    </p>
+                    <p className="text-[11px] text-[#4A5568] truncate mt-0.5">
+                      {lead.situation}
+                    </p>
+                  </div>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0 ${
+                      lead.status === "NUEVO"
+                        ? "bg-[#1473E6] text-white"
+                        : lead.status === "CERRADO"
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : "bg-white text-[#0B1B2E] border border-[#E2E8F0]"
+                    }`}
+                  >
+                    {lead.status}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="space-y-2.5">
-            {db.leads.slice(0, 5).map((lead) => (
-              <div
-                key={lead.id}
-                className="p-3 rounded-xl bg-[#F5F7FA] border border-[#E2E8F0] flex items-start justify-between gap-2 text-xs"
-              >
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-bold text-[#0B1B2E] truncate">
-                      {lead.name}
-                    </p>
-                    <span className="text-[10px] text-[#4A5568]">
-                      · {lead.zone}
-                    </span>
-                  </div>
-                  <p className="text-[11px] font-semibold text-[#1473E6] truncate mt-0.5">
-                    {lead.serviceName} ({lead.brand} {lead.model})
-                  </p>
-                  <p className="text-[11px] text-[#4A5568] truncate mt-0.5">
-                    {lead.situation}
-                  </p>
-                </div>
-                <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0 ${
-                    lead.status === "NUEVO"
-                      ? "bg-[#1473E6] text-white"
-                      : lead.status === "CERRADO"
-                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                      : "bg-white text-[#0B1B2E] border border-[#E2E8F0]"
-                  }`}
-                >
-                  {lead.status}
-                </span>
-              </div>
-            ))}
+          {/* Ver más / Ver menos consultas */}
+          <div className="pt-2.5 mt-3 border-t border-[#E2E8F0] flex items-center justify-between">
+            <span className="text-[11px] text-[#4A5568]">
+              Mostrando {Math.min(leadsLimit, db.leads.length)} de {db.leads.length} consultas
+            </span>
+            <button
+              type="button"
+              onClick={() => setLeadsLimit((prev) => (prev === 4 ? 8 : 4))}
+              className="inline-flex items-center gap-1 text-xs font-bold text-[#1473E6] hover:underline"
+            >
+              {leadsLimit === 4 ? (
+                <>
+                  <ChevronDown className="w-3.5 h-3.5" />
+                  <span>Ver más consultas</span>
+                </>
+              ) : (
+                <>
+                  <ChevronUp className="w-3.5 h-3.5" />
+                  <span>Ver menos</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
     </div>
   );
 }
+

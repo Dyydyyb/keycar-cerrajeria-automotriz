@@ -296,80 +296,89 @@ export function buildInitialSeedDatabase(): KeyCarDatabaseState {
       category: "Insumos/llaves en blanco",
       description: "Lote de carcasas navaja, espadas vírgenes y transponders ID46/ID48/MQB",
       provider: "Distribuidora Cerrajera Sur",
-      baseAmount: 295000,
+      baseAmount: 195000,
       freqDays: 10,
+      offsetDays: 3,
       method: "TRANSFERENCIA" as PaymentMethod,
     },
     {
       category: "Insumos/llaves en blanco",
       description: "Compra de telemandos originales y pilas CR2032 Panasonic",
       provider: "Importadora KeyTech BA",
-      baseAmount: 210000,
+      baseAmount: 140000,
       freqDays: 14,
+      offsetDays: 8,
       method: "TRANSFERENCIA" as PaymentMethod,
     },
     {
       category: "Herramientas",
       description: "Actualización licencia programador OBD2 / Fresas de carburo para duplicadora",
       provider: "AutoTools Argentina",
-      baseAmount: 185000,
+      baseAmount: 125000,
       freqDays: 28,
+      offsetDays: 16,
       method: "TARJETA" as PaymentMethod,
     },
     {
       category: "Alquiler",
       description: "Alquiler local comercial Av. Gral. San Martín 1574",
       provider: "Inmobiliaria Varela",
-      baseAmount: 420000,
+      baseAmount: 340000,
       freqDays: 30,
+      offsetDays: 5,
       method: "TRANSFERENCIA" as PaymentMethod,
     },
     {
       category: "Servicios",
       description: "Edesur, Internet Fibra Comercial y telefonía móvil guardia 24 hs",
       provider: "Servicios Generales",
-      baseAmount: 98000,
+      baseAmount: 78000,
       freqDays: 30,
+      offsetDays: 20,
       method: "MERCADOPAGO" as PaymentMethod,
     },
     {
       category: "Sueldos",
       description: "Adelanto y liquidación técnica ayudante de taller y guardia",
       provider: "Equipo Técnico KeyCar",
-      baseAmount: 360000,
+      baseAmount: 260000,
       freqDays: 15,
+      offsetDays: 10,
       method: "TRANSFERENCIA" as PaymentMethod,
     },
     {
       category: "Publicidad",
       description: "Campaña anuncios Google Ads / Meta Ads (Florencio Varela y GBA Sur)",
       provider: "Meta / Google Ads",
-      baseAmount: 115000,
+      baseAmount: 75000,
       freqDays: 20,
+      offsetDays: 12,
       method: "TARJETA" as PaymentMethod,
     },
     {
       category: "Impuestos",
       description: "Monotributo, Ingresos Brutos ARBA y Tasa Municipal F. Varela",
       provider: "AFIP / ARBA / Municipio",
-      baseAmount: 125000,
+      baseAmount: 95000,
       freqDays: 30,
+      offsetDays: 25,
       method: "TRANSFERENCIA" as PaymentMethod,
     },
     {
       category: "Combustible",
       description: "Carga combustible móvil de auxilio cerrajería 24 hs",
       provider: "YPF Av. San Martín",
-      baseAmount: 54000,
+      baseAmount: 38000,
       freqDays: 8,
+      offsetDays: 2,
       method: "MERCADOPAGO" as PaymentMethod,
     },
   ];
 
   let expCounter = 1;
   for (const tpl of expenseTemplates) {
-    for (let day = 0; day <= 200; day += tpl.freqDays) {
-      const jitterDays = day === 0 ? 0.2 : day + rng() * 2;
+    for (let day = tpl.offsetDays; day <= 200; day += tpl.freqDays) {
+      const jitterDays = Math.max(0.5, day + (rng() * 1.5 - 0.75));
       const expDate = new Date(
         now.getTime() - jitterDays * 24 * 60 * 60 * 1000
       );
@@ -524,3 +533,4 @@ export function buildInitialSeedDatabase(): KeyCarDatabaseState {
     },
   };
 }
+

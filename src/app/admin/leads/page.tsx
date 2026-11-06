@@ -17,6 +17,8 @@ import {
   X,
   Send,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useKeyCar } from "@/context/KeyCarContext";
 import { LeadRecord, LeadStatus } from "@/lib/types";
@@ -73,6 +75,7 @@ export default function AdminLeadsPage() {
   const [noteInput, setNoteInput] = useState("");
   const [showNewModal, setShowNewModal] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [tableLimit, setTableLimit] = useState(6);
 
   // New manual lead state
   const [newLeadForm, setNewLeadForm] = useState({
@@ -438,7 +441,7 @@ export default function AdminLeadsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E2E8F0]">
-              {filteredLeads.map((lead) => (
+              {filteredLeads.slice(0, tableLimit).map((lead) => (
                 <tr key={lead.id} className="hover:bg-[#F5F7FA]/70">
                   <td className="py-3 pr-3">
                     <p className="font-bold text-[#0B1B2E]">{lead.name}</p>
@@ -495,6 +498,31 @@ export default function AdminLeadsPage() {
               ))}
             </tbody>
           </table>
+
+          {/* Ver más / Ver menos consultas en tabla */}
+          <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-between text-xs">
+            <span className="text-[#4A5568]">
+              Mostrando <strong>{Math.min(tableLimit, filteredLeads.length)}</strong> de{" "}
+              <strong>{filteredLeads.length}</strong> consultas
+            </span>
+            <button
+              type="button"
+              onClick={() => setTableLimit((prev) => (prev <= 6 ? filteredLeads.length : 6))}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold bg-[#F5F7FA] hover:bg-[#1473E6] text-[#0B1B2E] hover:text-white border border-[#E2E8F0] transition-colors"
+            >
+              {tableLimit <= 6 ? (
+                <>
+                  <ChevronDown className="w-3.5 h-3.5" />
+                  <span>Ver más consultas ({filteredLeads.length})</span>
+                </>
+              ) : (
+                <>
+                  <ChevronUp className="w-3.5 h-3.5" />
+                  <span>Ver menos (6 filas)</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       )}
 
@@ -848,3 +876,4 @@ export default function AdminLeadsPage() {
     </div>
   );
 }
+

@@ -78,3 +78,4 @@ export function Logo({
 
   return content;
 }
+

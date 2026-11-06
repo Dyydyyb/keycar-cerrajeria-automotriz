@@ -83,3 +83,4 @@ El proyecto está 100% preparado para **Vercel**:
 2. Framework Preset: **Next.js** (detectado automáticamente).
 3. Configurá opcionalmente `ADMIN_EMAIL` y `ADMIN_PASSWORD` en *Environment Variables*.
 4. Hacé clic en **Deploy**.
+

@@ -25,6 +25,8 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useKeyCar } from "@/context/KeyCarContext";
 import { PaymentMethod } from "@/lib/types";
@@ -54,7 +56,7 @@ export default function AdminFinanzasPage() {
   const [categoryFilter, setCategoryFilter] = useState("TODAS");
   const [daysFilter, setDaysFilter] = useState<number>(30);
   const [page, setPage] = useState(1);
-  const pageSize = 15;
+  const [pageSize, setPageSize] = useState<number>(5);
 
   const [modalMode, setModalMode] = useState<"EGRESO" | "INGRESO" | null>(null);
   const [txForm, setTxForm] = useState({
@@ -513,12 +515,39 @@ export default function AdminFinanzasPage() {
           </table>
         </div>
 
-        {/* Pagination */}
-        <div className="pt-2 flex items-center justify-between text-xs">
-          <span className="text-[#4A5568]">
-            Página {page} de {totalPages}
-          </span>
+        {/* Pagination & "Ver más" */}
+        <div className="pt-3 border-t border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[#4A5568]">
+              Mostrando <strong>{paginatedTx.length}</strong> de <strong>{filteredTransactions.length}</strong> movimientos
+            </span>
+            <span className="text-slate-300 hidden sm:inline">|</span>
+            <button
+              type="button"
+              onClick={() => {
+                setPageSize((prev) => (prev <= 5 ? 15 : 5));
+                setPage(1);
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold bg-[#F5F7FA] hover:bg-[#1473E6] text-[#0B1B2E] hover:text-white border border-[#E2E8F0] transition-colors"
+            >
+              {pageSize <= 5 ? (
+                <>
+                  <ChevronDown className="w-3.5 h-3.5" />
+                  <span>Ver más filas (15)</span>
+                </>
+              ) : (
+                <>
+                  <ChevronUp className="w-3.5 h-3.5" />
+                  <span>Ver menos (5 filas)</span>
+                </>
+              )}
+            </button>
+          </div>
+
           <div className="flex items-center gap-1.5">
+            <span className="text-[#4A5568] mr-1">
+              Página {page} de {totalPages}
+            </span>
             <button
               type="button"
               disabled={page <= 1}
@@ -702,3 +731,4 @@ export default function AdminFinanzasPage() {
     </div>
   );
 }
+
