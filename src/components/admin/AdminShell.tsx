@@ -91,15 +91,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F7FA] text-[#4A5568] flex flex-col lg:flex-row">
-      {/* Desktop Sidebar (Fixed Dark Blue #0B1B2E) */}
+    <div className="min-h-screen bg-[#F5F7FA] text-[#4A5568]">
+      {/* Desktop Sidebar (Fixed to Viewport, Full 100vh, Never Cuts Off on Scroll) */}
       <aside
-        className={`no-print hidden lg:flex flex-col bg-[#0B1B2E] text-white border-r border-white/10 transition-all duration-200 flex-shrink-0 sticky top-0 h-screen ${
+        className={`no-print hidden lg:flex flex-col bg-[#0B1B2E] text-white border-r border-white/10 transition-all duration-200 fixed inset-y-0 left-0 z-30 h-screen ${
           collapsed ? "w-20" : "w-64"
         }`}
       >
         {/* Brand Header */}
-        <div className="h-16 px-4 flex items-center justify-between border-b border-white/10">
+        <div className="h-16 px-4 flex items-center justify-between border-b border-white/10 flex-shrink-0">
           {!collapsed ? (
             <Logo variant="dark" size="sm" href="/admin" />
           ) : (
@@ -125,8 +125,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
-        {/* Navigation Links */}
-        <nav className="flex-1 py-4 px-2.5 space-y-1 overflow-y-auto">
+        {/* Navigation Links (Scrollable if screen height is constrained) */}
+        <nav className="flex-1 py-4 px-2.5 space-y-1 overflow-y-auto min-h-0">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive =
@@ -168,7 +168,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* Bottom Actions */}
-        <div className="p-3 border-t border-white/10 space-y-1.5">
+        <div className="p-3 border-t border-white/10 space-y-1.5 flex-shrink-0">
           <Link
             href="/"
             target="_blank"
@@ -288,8 +288,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         )}
       </header>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+      {/* Main Content Area: offset on desktop to match the fixed sidebar */}
+      <div
+        className={`flex-1 flex flex-col min-w-0 transition-all duration-200 ${
+          collapsed ? "lg:pl-20" : "lg:pl-64"
+        }`}
+      >
         {/* Initial Password Change Security Prompt */}
         {!hidePwBanner && (
           <div className="no-print bg-amber-50 border-b border-amber-200 px-3 sm:px-6 py-2 flex items-center justify-between gap-2 text-xs text-amber-900">

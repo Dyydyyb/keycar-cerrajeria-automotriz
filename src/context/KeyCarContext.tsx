@@ -16,7 +16,7 @@ import {
 } from "@/lib/types";
 import { SITE_CONFIG } from "@/config/site";
 
-const STORAGE_KEY = "keycar_crm_db_v2";
+const STORAGE_KEY = "keycar_crm_db_v5";
 
 interface CreateLeadInput {
   name: string;

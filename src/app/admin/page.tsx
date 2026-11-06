@@ -231,12 +231,14 @@ export default function AdminDashboardPage() {
       const egresos = bTx
         .filter((t) => t.type === "EGRESO")
         .reduce((s, t) => s + t.amount, 0);
+      const rawBalance = ingresos - egresos;
 
       timeSeries.push({
         name: label,
         Ingresos: ingresos,
         Egresos: egresos,
-        Balance: ingresos - egresos,
+        Balance: Math.max(0, rawBalance),
+        rawBalance,
         Clientes: bJobs.length,
       });
     }
@@ -634,29 +636,39 @@ export default function AdminDashboardPage() {
                 data={analytics.timeSeries}
                 margin={{ top: 8, right: 10, left: 0, bottom: 0 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                <ReferenceLine y={0} stroke="#94A3B8" strokeWidth={1.5} strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
                 <XAxis
                   dataKey="name"
                   tick={{ fontSize: 11, fill: "#4A5568" }}
                   axisLine={{ stroke: "#E2E8F0" }}
+                  tickLine={false}
                 />
                 <YAxis
-                  tickFormatter={formatNetAxis}
+                  domain={[0, "auto"]}
+                  tickFormatter={(v) => `$${Math.round(v / 1000)}k`}
                   tick={{ fontSize: 11, fill: "#4A5568" }}
                   axisLine={{ stroke: "#E2E8F0" }}
-                  width={62}
+                  tickLine={false}
+                  width={56}
                 />
                 <Tooltip
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
-                      const isPos = data.Balance >= 0;
+                      const balVal =
+                        data.rawBalance !== undefined
+                          ? data.rawBalance
+                          : data.Balance;
+                      const isPos = balVal >= 0;
                       return (
                         <div className="bg-white p-2.5 rounded-xl border border-[#E2E8F0] shadow-card text-xs">
                           <p className="font-bold text-[#0B1B2E] mb-1">{data.name}</p>
-                          <p className={`font-extrabold text-sm ${isPos ? "text-emerald-700" : "text-rose-600"}`}>
-                            Balance: {isPos ? "+" : ""}{formatARS(data.Balance)}
+                          <p
+                            className={`font-extrabold text-sm ${
+                              isPos ? "text-emerald-700" : "text-rose-600"
+                            }`}
+                          >
+                            Resultado Neto: {isPos ? "+" : ""}{formatARS(balVal)}
                           </p>
                           <div className="text-[11px] text-[#4A5568] mt-1 space-y-0.5">
                             <p>Ingresos: {formatARS(data.Ingresos)}</p>
@@ -668,11 +680,16 @@ export default function AdminDashboardPage() {
                     return null;
                   }}
                 />
-                <Bar dataKey="Balance" maxBarSize={34} radius={[4, 4, 4, 4]}>
+                <Bar
+                  dataKey="Balance"
+                  maxBarSize={36}
+                  radius={[6, 6, 0, 0]}
+                  fill="#1473E6"
+                >
                   {analytics.timeSeries.map((entry, idx) => (
                     <Cell
                       key={`cell-bal-${idx}`}
-                      fill={entry.Balance >= 0 ? "#10B981" : "#F43F5E"}
+                      fill={idx % 2 === 0 ? "#1473E6" : "#0F5BB8"}
                     />
                   ))}
                 </Bar>
